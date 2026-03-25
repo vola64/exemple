@@ -55,10 +55,3 @@ pipeline {
     }
 }
 
-### 3️⃣ Clique sur "Commit changes" sur GitHub ✅
-
----
-
-### 4️⃣ Retourne dans Jenkins et clique sur :
-```
-"Lancer un build"
