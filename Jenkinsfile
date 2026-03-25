@@ -2,113 +2,69 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USER        = 'vola64'
-        DOCKERHUB_CREDS       = 'dockerhub-credentials'
-
-        TARGET_REGISTRY       = 'registry.example.com'     // ← change ici
-        TARGET_REGISTRY_CREDS = 'target-registry-credentials'
-        TARGET_NAMESPACE      = 'exemple'
-
-        // ← mets ici tes 5 vraies images Docker Hub
-        IMAGE_1 = 'vola64/image-one:latest'
-        IMAGE_2 = 'vola64/image-two:latest'
-        IMAGE_3 = 'vola64/image-three:latest'
-        IMAGE_4 = 'vola64/image-four:latest'
-        IMAGE_5 = 'vola64/image-five:latest'
+        IMAGE_1 = 'nginx:latest'
+        IMAGE_2 = 'mysql:8.0'
+        IMAGE_3 = 'redis:alpine'
+        IMAGE_4 = 'node:20'
+        IMAGE_5 = 'python:3.12'
     }
 
     stages {
 
-        stage('Login Docker Hub') {
+        stage('Pull nginx:latest') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: "${DOCKERHUB_CREDS}",
-                    usernameVariable: 'DH_USER',
-                    passwordVariable: 'DH_PASS'
-                )]) {
-                    sh 'echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin'
-                }
-                echo '✅ Connecté à Docker Hub'
+                echo "⬇️  Pull en cours : nginx:latest"
+                sh "docker pull ${IMAGE_1}"
+                echo "✅ nginx:latest téléchargée avec succès"
             }
         }
 
-        stage('Pull images depuis Docker Hub') {
+        stage('Pull mysql:8.0') {
             steps {
-                script {
-                    def images = [
-                        env.IMAGE_1,
-                        env.IMAGE_2,
-                        env.IMAGE_3,
-                        env.IMAGE_4,
-                        env.IMAGE_5
-                    ]
-                    images.each { image ->
-                        echo "⬇️  Pull : ${image}"
-                        sh "docker pull ${image}"
-                    }
-                }
+                echo "⬇️  Pull en cours : mysql:8.0"
+                sh "docker pull ${IMAGE_2}"
+                echo "✅ mysql:8.0 téléchargée avec succès"
             }
         }
 
-        stage('Login Registry cible') {
+        stage('Pull redis:alpine') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: "${TARGET_REGISTRY_CREDS}",
-                    usernameVariable: 'TR_USER',
-                    passwordVariable: 'TR_PASS'
-                )]) {
-                    sh 'echo "$TR_PASS" | docker login ${TARGET_REGISTRY} -u "$TR_USER" --password-stdin'
-                }
-                echo '✅ Connecté au registry cible'
+                echo "⬇️  Pull en cours : redis:alpine"
+                sh "docker pull ${IMAGE_3}"
+                echo "✅ redis:alpine téléchargée avec succès"
             }
         }
 
-        stage('Tag & Push vers registry cible') {
+        stage('Pull node:20') {
             steps {
-                script {
-                    def images = [
-                        env.IMAGE_1,
-                        env.IMAGE_2,
-                        env.IMAGE_3,
-                        env.IMAGE_4,
-                        env.IMAGE_5
-                    ]
-                    images.each { image ->
-                        def targetImage = "${TARGET_REGISTRY}/${TARGET_NAMESPACE}/${image}"
-                        sh "docker tag ${image} ${targetImage}"
-                        sh "docker push ${targetImage}"
-                        echo "✅ Image migrée : ${targetImage}"
-                    }
-                }
+                echo "⬇️  Pull en cours : node:20"
+                sh "docker pull ${IMAGE_4}"
+                echo "✅ node:20 téléchargée avec succès"
             }
         }
 
-        stage('Nettoyage local') {
+        stage('Pull python:3.12') {
             steps {
-                script {
-                    def images = [
-                        env.IMAGE_1,
-                        env.IMAGE_2,
-                        env.IMAGE_3,
-                        env.IMAGE_4,
-                        env.IMAGE_5
-                    ]
-                    images.each { image ->
-                        def targetImage = "${TARGET_REGISTRY}/${TARGET_NAMESPACE}/${image}"
-                        sh "docker rmi ${image} ${targetImage} || true"
-                    }
-                }
-                echo '🧹 Images locales supprimées'
+                echo "⬇️  Pull en cours : python:3.12"
+                sh "docker pull ${IMAGE_5}"
+                echo "✅ python:3.12 téléchargée avec succès"
+            }
+        }
+
+        stage('Vérification des images') {
+            steps {
+                echo "📋 Liste des images téléchargées :"
+                sh "docker images | grep -E 'nginx|mysql|redis|node|python'"
             }
         }
     }
 
     post {
-        success { echo '🎉 Toutes les images ont été migrées avec succès !' }
-        failure { echo '❌ Une erreur est survenue. Vérifie les logs.' }
-        always  {
-            sh 'docker logout || true'
-            sh "docker logout ${TARGET_REGISTRY} || true"
+        success {
+            echo '🎉 Succès ! Les 5 images sont bien téléchargées sur Jenkins.'
+        }
+        failure {
+            echo '❌ Erreur ! Consulte Console Output pour voir le problème.'
         }
     }
 }
