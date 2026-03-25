@@ -54,9 +54,6 @@ pipeline {
         }
     }
 }
-```
-
----
 
 ### 3️⃣ Clique sur "Commit changes" sur GitHub ✅
 
